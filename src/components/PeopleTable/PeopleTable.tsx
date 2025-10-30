@@ -1,7 +1,8 @@
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Person } from '../../types';
 import { FC } from 'react';
 import cn from 'classnames';
+import { PersonLink } from '../PersonLink/PersonLink';
 
 interface Props {
   people: Person[];
@@ -10,21 +11,18 @@ interface Props {
 export const PeopleTable: FC<Props> = ({ people }) => {
   const { personSlug } = useParams();
 
-  const getPersonLink = (name: string) => {
+  const getParent = (name: string | null | undefined) => {
+    if (!name) {
+      return '-';
+    }
+
     const parent = people.find(person => person.name === name);
 
     if (!parent) {
       return name;
     }
 
-    return (
-      <Link
-        to={`/people/${parent.slug}`}
-        className={cn({ 'has-text-danger': parent.sex === 'f' })}
-      >
-        {parent.name}
-      </Link>
-    );
+    return <PersonLink person={parent} />;
   };
 
   return (
@@ -44,34 +42,27 @@ export const PeopleTable: FC<Props> = ({ people }) => {
       </thead>
 
       <tbody>
-        {people.map(person => (
-          <tr
-            data-cy="person"
-            key={person.slug}
-            className={cn({
-              'has-background-warning': person.slug === personSlug,
-            })}
-          >
-            <td>
-              <Link
-                to={`/people/${person.slug}`}
-                className={cn({ 'has-text-danger': person.sex === 'f' })}
-              >
-                {person.name}
-              </Link>
-            </td>
+        {people.map(person => {
+          return (
+            <tr
+              data-cy="person"
+              key={person.slug}
+              className={cn({
+                'has-background-warning': person.slug === personSlug,
+              })}
+            >
+              <td>
+                <PersonLink person={person} />
+              </td>
 
-            <td>{person.sex}</td>
-            <td>{person.born}</td>
-            <td>{person.died}</td>
-            <td>
-              {person.motherName ? getPersonLink(person.motherName) : '-'}
-            </td>
-            <td>
-              {person.fatherName ? getPersonLink(person.fatherName) : '-'}
-            </td>
-          </tr>
-        ))}
+              <td>{person.sex}</td>
+              <td>{person.born}</td>
+              <td>{person.died}</td>
+              <td>{getParent(person.motherName)}</td>
+              <td>{getParent(person.fatherName)}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );
